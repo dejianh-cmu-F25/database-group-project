@@ -1,10 +1,3 @@
-/*
- * btree_bt_cursor_public.cc
- *
- * The file is dedicated to the implementation of the cursor functions.
- * Students will need to implement the 11 TODOS in this file for Assignment 3.
- *
- */
 #include "btree.h"
 
 // --------------------- BtCursor Constructor ---------------------
@@ -543,35 +536,30 @@ ResultCode Btree::BtreeInsert(const std::weak_ptr<BtCursor> &p_cursor_weak,
   // Step 2: Move cursor to the page where the key should be inserted
   int local_compare_result;
 
-  // TODO: A3 -> Move the cursor the page and cell index where key should be
+  // Move the cursor the page and cell index where key should be
   // inserted. There should be a function here in this file that helps you.
-  // TODO: Your code here
   rc = this->BtreeMoveTo(p_cursor_weak, key, local_compare_result); // ***
   if (rc != ResultCode::kOk) {
     return rc;
   }
-  // ----------------------------------------
 
-  // TODO: A3 -> Call Pager to make sure that the page is writable
+  // Call Pager to make sure that the page is writable
   // You can find the function in pager.cc
-  // TODO: Your code here
   rc = pager_->SqlitePagerWrite(cursor.p_page); // ***
   if (rc != ResultCode::kOk) {
     return rc;
   }
-  // ----------------------------------------
+
 
   // Step 3: Fill the overflow pages for the new cell if needed
   Cell new_cell(key, data);
 
-  // TODO: A3 -> Call A B-Tree function to fill in the overflow pages for the
+  // Call A B-Tree function to fill in the overflow pages for the
   // cell if necessary. There is a function in B-Tree that does it.
-  // TODO: Your code here
   rc = FillInCell(new_cell); // ***
   if (rc != ResultCode::kOk) {
     return rc;
   }
-  // ----------------------------------------
 
   // Step 4: Prepare the page for insertion
   if (local_compare_result == 0) {
@@ -581,17 +569,15 @@ ResultCode Btree::BtreeInsert(const std::weak_ptr<BtCursor> &p_cursor_weak,
     new_cell.cell_header_.left_child =
         cursor.p_page->GetCellHeaderByteView(cursor.cell_index).left_child;
 
-    // TODO: A3 -> Clear the payload inside the overflow page for this cell and
+    // Clear the payload inside the overflow page for this cell and
     // drop the cell from the page.
     // There are functions in B-Tree and NodePage for each of these 2 steps. One
     // in btree.cc and one in node_page.cc
-    // TODO: Your code here
     rc = ClearCell(*cursor.p_page, cursor.cell_index); // ***
     if (rc != ResultCode::kOk) {
       return rc; // ***
     }
     cursor.p_page->DropCell(cursor.cell_index); // ***
-    // ----------------------------------------
 
   } else if (local_compare_result < 0 && cursor.p_page->GetNumCells() > 0) {
     // Case 2: The key-data pair is not inside this page.
@@ -607,19 +593,15 @@ ResultCode Btree::BtreeInsert(const std::weak_ptr<BtCursor> &p_cursor_weak,
 
   // Step 5: Insert the cell
 
-  // TODO: A3 -> Insert the new_cell into the page at the cursor's cell index
+  // Insert the new_cell into the page at the cursor's cell index
   // There is a function in node_page.cc that helps you with this insert.
-  // TODO: Your code here
   p_cursor->p_page->InsertCell(new_cell, cursor.cell_index); // ***
 
-  // ----------------------------------------
 
   // Step 6: Balance the Btree
 
-  // TODO: A3 -> Call Balance function
-  // TODO: Your code here
+  // Call Balance function
   rc = Balance(cursor.p_page, p_cursor); // ***
-  // ----------------------------------------
 
   return rc;
 }
@@ -658,10 +640,9 @@ ResultCode Btree::BtreeDelete(const std::weak_ptr<BtCursor> &p_cursor_weak) {
   }
   ResultCode rc;
 
-  // TODO: A3 -> Check with Pager layer to make sure that the page is writable
+  // Check with Pager layer to make sure that the page is writable
   // Before we write anything into a page, we must check with Pager to make sure
   // that the page is writable.
-  // TODO: Your code here
   rc = pager_->SqlitePagerWrite(cursor.p_page); // ***
   if (rc != ResultCode::kOk) {
     return rc;
@@ -671,25 +652,22 @@ ResultCode Btree::BtreeDelete(const std::weak_ptr<BtCursor> &p_cursor_weak) {
   // Step 2: Find the child page number
   PageNumber child_page_number = 0;
 
-  // TODO: A3 -> Assign the correct value to child_page_number
+  // Assign the correct value to child_page_number
   // The value can be found by accessing the cell header of the cell that the
   // cursor is pointing to.
   // The left child page number is stored in tha cell header
-  // TODO: Your code here
   child_page_number =
       cursor.p_page->GetCellHeaderByteView(cursor.cell_index).left_child; // ***
   // ----------------------------------------
 
   // Step 3: Clear all the overflow pages tied to this cell
 
-  // TODO: A3 -> Clear the overflow pages
+  // Clear the overflow pages
   // There should be a function in this file that helps you.
-  // TODO: Your code here
   rc = ClearCell(*cursor.p_page, cursor.cell_index); // ***
   if (rc != ResultCode::kOk) {
     return rc;
   }
-  // ----------------------------------------
 
   // Step 4: Handle cases for internal and leaf node deletion
   if (child_page_number != 0) {
@@ -738,10 +716,9 @@ ResultCode Btree::BtreeDelete(const std::weak_ptr<BtCursor> &p_cursor_weak) {
   } else {
     // Case 2: We are deleting an entry in a leaf page
 
-    // TODO: A3 -> Drop the cell from the page
+    // Drop the cell from the page
     // Drop the cell from the page that the cursor is pointing to
     // There is a function in NodePage that helps you with this.
-    // TODO: Your code here
     cursor.p_page->DropCell(cursor.cell_index); // ***
     // ----------------------------------------
 
@@ -757,9 +734,7 @@ ResultCode Btree::BtreeDelete(const std::weak_ptr<BtCursor> &p_cursor_weak) {
       cursor.skip_next = true;
     }
 
-    // TODO: A3 -> Balance
-    // Call the balance function on the page that the cursor is pointing to.
-    // TODO: Your code here
+    // Balance: Call the balance function on the page that the cursor is pointing to.
     rc = Balance(cursor.p_page, p_cursor); // ***
     // ----------------------------------------
   }
