@@ -1,10 +1,3 @@
-/*
- * balance.cc
- *
- * The file is dedicated to the implementation of the Btree::Balance() function.
- * Students will need to implement the TODOS in this file for Assignment 3.
- *
- */
 #include "btree.h"
 
 /**
@@ -52,8 +45,7 @@ ResultCode Btree::Balance(NodePage *p_page,
   // it is a root page, we will apply special logic to balance it
   if (!p_parent) {
     bool return_ok_early = false;
-    // TODO: A3 -> Call helper function here to handle the root page
-    // TODO: Your code here
+    // Call helper function here to handle the root page
     rc = BalanceHelperHandleRoot(p_page, p_parent, p_cursor, p_extra_unref,
                                  return_ok_early); // ***
     // ------------------------------------
@@ -76,18 +68,15 @@ ResultCode Btree::Balance(NodePage *p_page,
   int idx; // The index of the cell in the parent that points to the current
            // page
 
-  // TODO: A3 -> Call helper function to find the parent cell idx that points to
+  // Call helper function to find the parent cell idx that points to
   // the current page
-  // TODO: Your code here
   idx = BalanceHelperFindChildIdx(p_page, p_parent); // ***
-  // ------------------------------------
 
-  // TODO: A3 -> Assign the correct value to discovered_file_corruption
+
+  // Assign the correct value to discovered_file_corruption
   // according to the value of idx. Hint: Inspect the logic of
   // BalanceHelperFindChildIdx to determine what it returns when it cannot find
   // the index of the cell in the parent that points to the current page.
-  // ------------------------------------
-  // TODO: Your code here
   bool discovered_file_corruption = idx < 0; // ***
   if (discovered_file_corruption) {
     return ResultCode::kCorrupt;
@@ -171,13 +160,12 @@ ResultCode Btree::Balance(NodePage *p_page,
       divider_cell_indexes.push_back(k);
       PageNumber left_child_page_number;
 
-      // TODO: A3 -> Assign the correct value to left_child_page_number
+      // Assign the correct value to left_child_page_number
       // It should be the left child inside the cell header of the cell at index
       // k. There is a function in node_page.cc that you should call here
-      // TODO: Your code here
       left_child_page_number =
           p_parent->GetCellHeaderByteView(k).left_child; // ***
-      // ------------------------------------
+
 
       divider_page_numbers.push_back(left_child_page_number);
       divider_cells.push_back(p_parent->GetCell(k));
@@ -188,13 +176,12 @@ ResultCode Btree::Balance(NodePage *p_page,
 
       PageNumber right_child_page_number;
 
-      // TODO: A3 -> Assign the correct value to right_child_page_number
+      // Assign the correct value to right_child_page_number
       // This value could be found inside the p_parent's node page header
       // There is a function in node_page.cc that you should call here
-      // TODO: Your code here
       right_child_page_number =
           p_parent->GetNodePageHeaderByteView().right_child; // ***
-      // ------------------------------------
+
 
       divider_page_numbers.push_back(right_child_page_number);
     } else {
@@ -284,14 +271,14 @@ ResultCode Btree::Balance(NodePage *p_page,
 
     PageNumber page_number_to_free;
 
-    // TODO: A3 -> Assign the correct value to page_number_to_free
+    // Assign the correct value to page_number_to_free
     // We have extracted all cells from the page, so we can free it.
     // Assign the correct value to page_number_to_free
     // Where could we find the page number of the page we want to free for
     // iteration i? That is the value you should assign to page_number_to_free
-    // TODO: Your code here
+
     page_number_to_free = divider_page_numbers[i]; // ***
-    // ------------------------------------
+
 
     rc = FreePage(p_base_page, page_number_to_free, false);
     if (rc != ResultCode::kOk) {
@@ -352,11 +339,10 @@ ResultCode Btree::Balance(NodePage *p_page,
     NodePage *p_new_page = nullptr;
     PageNumber new_page_number{};
 
-    // TODO: A3 -> Call a B-Tree function to allocate a new page for p_new_page.
+    // Call a B-Tree function to allocate a new page for p_new_page.
     // The page number is stored in the new_page_number variable
-    // TODO: Your code here
     rc = AllocatePage(p_new_page, new_page_number); // ***
-    // ------------------------------------
+
 
     if (rc != ResultCode::kOk) {
       goto balance_cleanup;
@@ -377,15 +363,13 @@ ResultCode Btree::Balance(NodePage *p_page,
    * deliver pages from the disk more rapidly.
    */
 
-  // TODO: A3 -> Sort the new_page_number_to_page vector by page number
+  // Sort the new_page_number_to_page vector by page number
   // Each element in the vector is a pair of page number and NodePage pointer
-  // TODO: Your code here
   std::sort(new_page_number_to_page.begin(), new_page_number_to_page.end(),
             [](const std::pair<PageNumber, NodePage *> &a,
                const std::pair<PageNumber, NodePage *> &b) {
               return a.first < b.first;
             }); // ***
-  // ------------------------------------
 
   /*
    * Step 12: Insert the cells into the new pages and update the cursor
@@ -395,34 +379,32 @@ ResultCode Btree::Balance(NodePage *p_page,
     PageNumber new_page_number;
     NodePage *p_new_page;
 
-    // TODO: A3 -> Assign the correct values to new_page_number and p_new_page
+    // Assign the correct values to new_page_number and p_new_page
     // for iteration i
-    // TODO: Your code here
     new_page_number = new_page_number_to_page[i].first; // ***
     p_new_page = new_page_number_to_page[i].second;     // ***
-    // -----------------------------------
+
 
     // 12 - 1: Insert the cells the child pages
     while (num_cells_inserted < new_divider_cell_indexes[i]) {
       Cell cell_to_insert = redistributed_cells[num_cells_inserted];
       // Update the cursor if necessary
       if (num_cells_inserted == cursor_cell_index && !p_cursor.expired()) {
-        // TODO: A3 -> Assign the correct values to p_page and cell_index inside
+        // Assign the correct values to p_page and cell_index inside
         // p_cursor Assign the correct values to p_page and cell_index inside
         // p_cursor p_page should point to p_new_page cell_index should be the
         // number of cells in p_new_page
-        // TODO: Your code here
+
         p_cursor.lock()->p_page = p_new_page;                    // ***
         p_cursor.lock()->cell_index = p_new_page->GetNumCells(); // ***
-        // -----------------------------------
+
       }
 
-      // TODO: A3 -> Insert the cell (cell_to_insert) into the new page
+      // Insert the cell (cell_to_insert) into the new page
       // The cell_index should be the number of cells in p_new_page
       // There is a function in node_page.cc that can help with this
-      // TODO: Your code here
       p_new_page->InsertCell(cell_to_insert, p_new_page->GetNumCells()); // ***
-      // -----------------------------------
+
 
       num_cells_inserted++;
     }
@@ -436,21 +418,18 @@ ResultCode Btree::Balance(NodePage *p_page,
       cell_to_insert.cell_header_.left_child = new_page_number;
       if (num_cells_inserted == cursor_cell_index && !p_cursor.expired()) {
 
-        // TODO: A3 -> Assign the correct values to p_page and cell_index inside
+        // Assign the correct values to p_page and cell_index inside
         // p_cursor p_page should point to p_parent cell_index should be
         // divider_start_cell_idx
-        // TODO: Your code here
         p_cursor.lock()->p_page = p_parent;                   // ***
         p_cursor.lock()->cell_index = divider_start_cell_idx; // ***
         // -----------------------------------
       }
 
-      // TODO: A3 -> Insert the cell (cell_to_insert) into the parent page
+      // Insert the cell (cell_to_insert) into the parent page
       // The cell_index should be divider_start_cell_idx
       // There should be a function in node_page.cc that can help with this
-      // TODO: Your code here
       p_parent->InsertCell(cell_to_insert, divider_start_cell_idx); // ***
-      // -----------------------------------
 
       num_cells_inserted++;
       divider_start_cell_idx++;
@@ -490,23 +469,19 @@ ResultCode Btree::Balance(NodePage *p_page,
    * parent pointers.
    */
 
-  // TODO: A3 -> Call B-Tree function to re-parent child pages on each of the
+  // Call B-Tree function to re-parent child pages on each of the
   // new pages we created.
   // The pointer to each page is stored in new_page_number_to_page
-  // TODO: Your code here
   for (auto &page_number_page_pair : new_page_number_to_page) {
     ReParentChildPages(*page_number_page_pair.second);
   } // ***
-  // ------------------------------------
 
   ReParentChildPages(*p_parent);
 
   // Step 14: Call Balance on the parent page
 
-  // TODO: A3 -> Call Balance on the parent page
-  // TODO: Your code here
+  // Call Balance on the parent page
   rc = Balance(p_parent, p_cursor); // ***
-// ------------------------------------
 
 // Step 15: Cleanup, unreferencing the pages and returning the result code
 balance_cleanup:
@@ -570,17 +545,15 @@ Btree::BalanceHelperHandleRoot(NodePage *&p_page, NodePage *&p_parent,
      */
     bool root_has_right_child;
 
-    // TODO: A3 -> Assign the correct value to root_has_right_child
+    // Assign the correct value to root_has_right_child
     // You can find the right child page number inside the root page's node page
     // header p_page should point to the root page at this point. A function in
     // node_page.cc could help you find the page's node page header. After that
     // you can check if the right child page number is 0. If it is not 0, then
     // it means that the root page has a right child. If it is 0, then it means
     // that the root page has no right child
-    // TODO: Your code here
     root_has_right_child =
         p_page->GetNodePageHeaderByteView().right_child != 0; // ***
-    // --------------------------
 
     if (root_has_right_child) {
       // Get right child
@@ -623,13 +596,11 @@ Btree::BalanceHelperHandleRoot(NodePage *&p_page, NodePage *&p_parent,
    */
   bool root_page_is_overfull;
 
-  // TODO: A3 -> Assign the correct value to root_page_is_overfull
+  // Assign the correct value to root_page_is_overfull
   // At this point p_page points to the root page.
   // There should be a function in node_page.cc that can help you determine
   // if the page that p_page points to is overfull
-  // TODO: Your code here
   root_page_is_overfull = p_page->IsOverfull();
-  // -------------------------
 
   if (!root_page_is_overfull) {
     p_page->RelinkCellList();
@@ -687,20 +658,18 @@ int Btree::BalanceHelperFindChildIdx(NodePage *p_page, NodePage *p_parent) {
   int idx = -1;
   PageNumber current_page_number;
 
-  // TODO: A3 -> Assign the correct value to current_page_number
+  // Assign the correct value to current_page_number
   // The Btree layer normally doesn't know what page number each page has.
   // It is an information only known by the Pager layer.
   // Assign the correct value to current_page_number by calling the function in
   // pager.cc that returns the pager number of a page
-  // TODO: Your code here
   current_page_number = pager_->SqlitePagerPageNumber(p_page); // ***
-  // -----------------------------
 
   // Step 1: Find the index of the cell in p_parent that points to p_page
   for (int i = 0; i < p_parent->GetNumCells(); ++i) {
     bool is_left_child = false;
 
-    // TODO: A3 -> Assign the correct value to is_left_child
+    // Assign the correct value to is_left_child
     // You should get the the cell header inside the parent nodes that points to
     // the current page.
     // If the left child of the cell points to the current page, then
@@ -708,10 +677,8 @@ int Btree::BalanceHelperFindChildIdx(NodePage *p_page, NodePage *p_parent) {
     //
     // There should be a function in node_page.cc that allows you to get the
     // cell header of a cell at index i.
-    // TODO: Your code here
     CellHeaderByteView cell_header = p_parent->GetCellHeaderByteView(i); // ***
     is_left_child = (cell_header.left_child == current_page_number);     // ***
-    // -----------------------------
 
     if (is_left_child) {
       // Found the index of the cell in p_parent that points to p_page
