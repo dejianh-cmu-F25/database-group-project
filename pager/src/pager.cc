@@ -53,6 +53,28 @@ Pager::Pager(std::string &file_name, int max_page_num, EvictionPolicy policy) {
   eviction_policy_ = policy;
 }
 
+/**
+ * Destructor for Pager
+ * Ensures that any locks held on the database file are properly released
+ * when the pager object is destroyed (including during simulated crashes).
+ */
+ Pager::~Pager() {
+  // If we're holding a lock, release it
+  if (lock_state_ != SqliteLockState::K_SQLITE_UNLOCK && fd_) {
+    fd_->OsUnlock();
+  }
+  // Close files if they're open
+  if (fd_) {
+    fd_->OsClose();
+  }
+  if (is_journal_open_ && journal_fd_) {
+    journal_fd_->OsClose();
+  }
+  if (is_checkpoint_journal_open_ && checkpoint_journal_fd_) {
+    checkpoint_journal_fd_->OsClose();
+  }
+}
+
 /*
  * Change the maximum number of pages in the cache.
  */

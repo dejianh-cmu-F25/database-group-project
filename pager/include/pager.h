@@ -169,6 +169,9 @@ class Pager {
   Pager(std::string &file_name, int max_page_num,
         EvictionPolicy policy = EvictionPolicy::FIRST_NON_DIRTY);
 
+  // destructor
+  ~Pager();
+
   void SqlitePagerSetCachesize(
       int max_page_num);  // TO_DELETE: seems like we don't need to dynamically
                           // change the cache size
