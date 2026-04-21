@@ -267,7 +267,7 @@ ResultCode Btree::Balance(NodePage *p_page,
     // We can add them to the free list
     p_base_page = divider_pages[i];
     auto *p_node_page = dynamic_cast<NodePage *>(p_base_page);
-    p_node_page->ZeroPage();
+    p_node_page->ZeroPage(p_node_page->IsLeaf());
 
     PageNumber page_number_to_free;
 
@@ -347,7 +347,7 @@ ResultCode Btree::Balance(NodePage *p_page,
     if (rc != ResultCode::kOk) {
       goto balance_cleanup;
     }
-    p_new_page->ZeroPage();
+    p_new_page->ZeroPage(p_page->IsLeaf());
     p_new_page->is_init_ = true;
     new_page_number_to_page.emplace_back(new_page_number, p_new_page);
   }
@@ -632,7 +632,7 @@ Btree::BalanceHelperHandleRoot(NodePage *&p_page, NodePage *&p_parent,
   } else {
     p_extra_unref = p_child;
   }
-  p_page->ZeroPage();
+  p_page->ZeroPage(false);
   NodePageHeaderByteView header = p_page->GetNodePageHeaderByteView();
   header.right_child = child_page_number;
   p_page->SetNodePageHeaderByteView(header);

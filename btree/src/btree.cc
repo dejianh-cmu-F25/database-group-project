@@ -82,7 +82,7 @@ ResultCode Btree::NewDatabase() {
 
   // Step 4: Initialize FirstPage and RootPage, and then unref RootPage
   p_first_page_->SetDefaultByteView();
-  p_root_page->ZeroPage();
+  p_root_page->ZeroPage(true);
   rc = pager_->SqlitePagerUnref(p_root_page);
   return rc;
 }
@@ -503,7 +503,7 @@ ResultCode Btree::ClearDatabasePage(PageNumber page_number, bool free_page) {
   if (free_page) {
     rc = FreePage(p_base_page, page_number, false);
   } else {
-    p_node_page->ZeroPage();
+    p_node_page->ZeroPage(true);
   }
   rc = pager_->SqlitePagerUnref(p_base_page);
   return rc;
@@ -644,7 +644,7 @@ ResultCode Btree::BtreeCreateTable(PageNumber &root_page_number) {
   if (!pager_->SqlitePagerIsWritable(p_node_page)) {
     return ResultCode::kError;
   }
-  p_node_page->ZeroPage();
+  p_node_page->ZeroPage(true);
   pager_->SqlitePagerUnref(p_node_page);
   root_page_number = page_number;
   return ResultCode::kOk;
@@ -699,7 +699,7 @@ ResultCode Btree::BtreeDropTable(PageNumber root_page_number) {
     rc = FreePage(p_base_page, root_page_number, false);
   } else {
     auto *p_node_page = dynamic_cast<NodePage *>(p_base_page);
-    p_node_page->ZeroPage();
+    p_node_page->ZeroPage(true);
   }
   rc = pager_->SqlitePagerUnref(p_base_page);
   return rc;

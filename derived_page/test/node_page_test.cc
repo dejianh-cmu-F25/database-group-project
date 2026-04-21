@@ -20,7 +20,7 @@ TEST(AllocateSpaceTest, InsertIntoBlankPage) {
   std::vector<std::byte> key = {std::byte{11}, std::byte{12}, std::byte{13}};
   std::vector<std::byte> data = {std::byte{21}, std::byte{22}, std::byte{23}, std::byte{24}, std::byte{25}};
   Cell cell(key, data);
-  tree_page.ZeroPage();
+  tree_page.ZeroPage(true);
   ImageIndex insert_index = tree_page.AllocateSpace(cell.GetPayloadSize());
   EXPECT_EQ(insert_index, sizeof(NodePageHeaderByteView));
 }
@@ -30,7 +30,7 @@ TEST(AllocateSpaceTest, InsertTwoCells) {
   std::vector<std::byte> key = {std::byte{11}, std::byte{12}};
   std::vector<std::byte> data = {std::byte{21}};
   Cell cell(key, data);
-  tree_page.ZeroPage();
+  tree_page.ZeroPage(true);
   ImageIndex insert_index = tree_page.AllocateSpace(cell.GetPayloadSize());
   EXPECT_EQ(insert_index, sizeof(NodePageHeaderByteView));
   insert_index = tree_page.AllocateSpace(cell.GetPayloadSize());

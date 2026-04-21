@@ -96,6 +96,32 @@ void NodePage::SetNodePageHeaderByteView(
               sizeof(NodePageHeaderByteView));
 }
 
+bool NodePage::IsLeaf() const {
+  return GetNodePageHeaderByteView().is_leaf != 0;
+}
+
+void NodePage::SetLeaf(bool is_leaf) {
+  NodePageHeaderByteView node_page_header = GetNodePageHeaderByteView();
+  node_page_header.is_leaf = is_leaf ? 1 : 0;
+  SetNodePageHeaderByteView(node_page_header);
+}
+
+PageNumber NodePage::GetRightChild() const {
+  return GetNodePageHeaderByteView().right_child;
+}
+
+void NodePage::SetRightChild(PageNumber page_number) {
+  NodePageHeaderByteView node_page_header = GetNodePageHeaderByteView();
+  node_page_header.right_child = page_number;
+  SetNodePageHeaderByteView(node_page_header);
+}
+
+PageNumber NodePage::GetNextLeaf() const { return GetRightChild(); }
+
+void NodePage::SetNextLeaf(PageNumber page_number) {
+  SetRightChild(page_number);
+}
+
 /**
  * Returns a FreeBlockByteView stored at the specified index in p_image_
  */
@@ -176,11 +202,12 @@ void NodePage::SetCellHeaderByteViewByImageIndex(
 /**
  * Resets the content of the page image and other member variables
  */
-void NodePage::ZeroPage() {
+void NodePage::ZeroPage(bool is_leaf) {
   memset(p_image_->data(), 0, kPageSize);
 
   // Step 1: Reset the NodePageHeader
   NodePageHeaderByteView node_page_header{};
+  node_page_header.is_leaf = is_leaf ? 1 : 0;
   node_page_header.right_child = 0;
   node_page_header.first_cell_idx = 0;
   node_page_header.first_free_block_idx = sizeof(NodePageHeaderByteView);

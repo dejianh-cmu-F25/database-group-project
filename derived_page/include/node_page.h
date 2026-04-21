@@ -18,8 +18,11 @@
  * NodePage. The NodePageHeader starts at address 0 of the page image.
  */
 struct NodePageHeaderByteView {
+  // Distinguishes leaf pages from internal pages.
+  u8 is_leaf;
+
   // The right child page number when the page is treated as an internal node in
-  // a Btree.
+  // a Btree. On a leaf page, this is reused as the next leaf page number.
   PageNumber right_child;
 
   // The first cell starts at this index
@@ -293,9 +296,16 @@ class NodePage : public OverFreePage {
   [[nodiscard]] bool IsOverfull() const;
 
  public:
+  bool IsLeaf() const;
+  void SetLeaf(bool is_leaf);
+  PageNumber GetRightChild() const;
+  void SetRightChild(PageNumber page_number);
+  PageNumber GetNextLeaf() const;
+  void SetNextLeaf(PageNumber page_number);
+
   // Public functions for manipulating the page image
   ImageIndex AllocateSpace(u32 num_bytes_in);
-  void ZeroPage();
+  void ZeroPage(bool is_leaf);
   void DefragmentPage();
   void CopyPage(NodePage &dest);
   void DropCell(u16 cell_idx);
